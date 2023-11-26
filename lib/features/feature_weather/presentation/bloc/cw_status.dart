@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:telcarnetflutter/features/feature_weather/domain/entities/current_city_entity.dart';
+
+import '../../domain/entities/current_city_entity.dart';
 
 @immutable
 abstract class  CwStatus{

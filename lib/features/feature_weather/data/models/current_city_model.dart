@@ -1,4 +1,5 @@
-import 'package:telcarnetflutter/features/feature_weather/domain/entities/current_city_entity.dart';
+
+import '../../domain/entities/current_city_entity.dart';
 
 /// coord : {"lon":10.99,"lat":44.34}
 /// weather : [{"id":501,"main":"Rain","description":"moderate rain","icon":"10d"}]
@@ -386,10 +387,10 @@ class Coord {
     lon = json['lon'];
     lat = json['lat'];
   }
-  num? lon;
-  num? lat;
-Coord copyWith({  num? lon,
-  num? lat,
+  double? lon;
+  double? lat;
+Coord copyWith({ double? lon,
+  double? lat,
 }) => Coord(  lon: lon ?? this.lon,
   lat: lat ?? this.lat,
 );

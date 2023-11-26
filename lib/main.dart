@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutteradvanced/core/widgets/main_wrapper.dart';
+import 'package:flutteradvanced/features/feature_weather/presentation/bloc/home_bloc.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+import 'locator.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home:MainWrapper()
-    );
-  }
+  /// init locator
+  await setUp();
+
+  runApp(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home:MultiBlocProvider(
+          providers: [
+        BlocProvider(create:(_) => locator<HomeBloc>())
+      ],
+      child: MainWrapper()
+      ),
+  ));
 }

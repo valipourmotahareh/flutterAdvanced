@@ -1,3 +1,4 @@
+
 import 'package:equatable/equatable.dart';
 
 import '../../data/models/current_city_model.dart';

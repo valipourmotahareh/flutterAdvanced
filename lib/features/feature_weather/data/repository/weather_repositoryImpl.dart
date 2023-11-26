@@ -1,4 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutteradvanced/core/params/forecast_params.dart';
+import 'package:flutteradvanced/features/feature_weather/data/models/forecastDaysModel.dart';
+import 'package:flutteradvanced/features/feature_weather/data/models/suggest_city_model.dart';
+import 'package:flutteradvanced/features/feature_weather/domain/entities/forecast_Days_entity.dart';
+import 'package:flutteradvanced/features/feature_weather/domain/entities/suggest_city_entity.dart';
 
 import '../../../../core/resources/data_state.dart';
 import '../../domain/entities/current_city_entity.dart';
@@ -22,6 +27,29 @@ class WeatherRepositoryImpl extends WeatherRepository{
       }catch(e){
         return const DataFailed("Connection Failed...");
       }
+  }
+
+  @override
+  Future<DataState<ForecastDaysEntity>> fetchForecastWeatherData(ForecastParams params) async {
+    try{
+      Response response=await apiProvider.sendRequest7DaysForecast(params);
+      if(response.statusCode==200){
+        ForecastDaysEntity forecastDaysEntity=ForecastDaysModel.fromJson(response.data);
+        return DataSuccess(forecastDaysEntity);
+      }else{
+        return const DataFailed("Something went Wrong, try again...");
+      }
+    }catch(e){
+      return const DataFailed("Connection Failed...");
+    }
+  }
+
+  @override
+  Future<List<Data>> fetchSuggestData(cityName) async{
+
+     Response response= await apiProvider.sendRequestCitySuggestion(cityName);
+     SuggestCityEntity suggestCityEntity=SuggestCityModel.fromJson(response.data);
+     return suggestCityEntity.data!;
   }
   
 }
