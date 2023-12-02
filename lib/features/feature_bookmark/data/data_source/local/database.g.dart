@@ -119,14 +119,14 @@ class _$CityDao extends CityDao {
   Future<List<City>> getAllCity() async {
     return _queryAdapter.queryList('SELECT * FROM City',
         mapper: (Map<String, Object?> row) =>
-            City(row['name'] as String, row['id'] as int?));
+            City(name: row['name'] as String, id: row['id'] as int?));
   }
 
   @override
   Future<City?> findCityByName(String name) async {
     return _queryAdapter.query('SELECT * FROM City WHERE name=?1',
         mapper: (Map<String, Object?> row) =>
-            City(row['name'] as String, row['id'] as int?),
+            City(name: row['name'] as String, id: row['id'] as int?),
         arguments: [name]);
   }
 

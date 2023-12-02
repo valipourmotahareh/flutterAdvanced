@@ -9,7 +9,7 @@ class City extends Equatable{
 
   final String name;
 
-  City(this.name, this.id);
+ const City({required this.name, this.id});
 
   @override
   // TODO: implement props

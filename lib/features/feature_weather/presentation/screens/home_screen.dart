@@ -1,9 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flutteradvanced/features/feature_bookmark/presentation/bloc/bookmark_bloc.dart';
 import 'package:flutteradvanced/features/feature_weather/domain/use_cases/get_suggest_city_usecase.dart';
 import 'package:flutteradvanced/features/feature_weather/presentation/bloc/fw_status.dart';
+import 'package:flutteradvanced/features/feature_weather/presentation/widgets/bookmark_icon.dart';
 import 'package:flutteradvanced/features/feature_weather/presentation/widgets/day_weather_view.dart';
 import 'package:flutteradvanced/locator.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -25,7 +26,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin{
   TextEditingController textEditingController=TextEditingController();
   GetSuggestCityUseCase getSuggestCityUseCase=GetSuggestCityUseCase(locator());
   String cityName="tehran";
@@ -42,54 +43,93 @@ class _HomeScreenState extends State<HomeScreen> {
     final width=MediaQuery.of(context).size.width;
     return SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             /// ارتفاع از بالا ۲ درصد فاصله داشته باشه
             SizedBox(height: height * 0.02,),
+
             Padding(
               padding:  EdgeInsets.symmetric(horizontal: width * 0.03),
-              child: TypeAheadField(
-                textFieldConfiguration: TextFieldConfiguration(
-                  onSubmitted: (String prefix){
-                    /// show text in textField
-                    textEditingController.text=prefix;
-                    /// call event for get current weather
-                    BlocProvider.of<HomeBloc>(context).add(LoadCwEvent(prefix));
-                  },
-                  controller: textEditingController,
-                  style: DefaultTextStyle.of(context).style.copyWith(
-                    fontSize: 20,
-                    color: Colors.white,
+              child: Row(
+                children: [
+                  /// search box
+                  Expanded(
+                    child: TypeAheadField(
+                      textFieldConfiguration: TextFieldConfiguration(
+                        onSubmitted: (String prefix){
+                          /// show text in textField
+                          textEditingController.text=prefix;
+                          /// call event for get current weather
+                          BlocProvider.of<HomeBloc>(context).add(LoadCwEvent(prefix));
+                        },
+                        controller: textEditingController,
+                        style: DefaultTextStyle.of(context).style.copyWith(
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
+                        decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                          hintText: "Enter a City.... ",
+                          hintStyle: TextStyle(color: Colors.white),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                        suggestionsCallback: (String prefix){
+                          /// call api
+                        return getSuggestCityUseCase.call(prefix);
+                         },
+                        itemBuilder: (context,Data model){
+                          return ListTile(
+                            leading: const Icon(Icons.location_on),
+                            title: Text(model.name!),
+                            subtitle: Text("${model.region!},${model.country!}"),
+                          );
+                        },
+                        onSuggestionSelected: (Data model){
+                          /// show text in textField
+                          textEditingController.text=model.name!;
+                          /// call event for get current weather
+                          BlocProvider.of<HomeBloc>(context).add(LoadCwEvent(model.name!));
+                        }),
                   ),
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                    hintText: "Enter a City.... ",
-                    hintStyle: TextStyle(color: Colors.white),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                    ),
+                  const SizedBox(width: 10,),
+
+                  BlocBuilder<HomeBloc,HomeState>(
+                    buildWhen: (previous,current){
+                         if(previous.cwStatus==current.cwStatus){
+                           return false;
+                         }
+                         return true;
+                    },
+                    builder: (context,state){
+                      /// show loading state for Cw
+                      if(state.cwStatus is CwLoading){
+                        return const CircularProgressIndicator();
+                      }
+                      /// show Error state for Cw
+                      if(state.cwStatus is CwError){
+                        return IconButton(
+                            onPressed: (){
+
+                            },
+                            icon: const Icon(Icons.error,color: Colors.white,size: 35,));
+                      }
+                      /// show component for state complete Cw
+                      if(state.cwStatus is CwCompleted){
+                        final CwCompleted cwCompleted=state.cwStatus as CwCompleted;
+                        BlocProvider.of<BookmarkBloc>(context).add(GetCityByNameEvent(cwCompleted.currentCityEntity.name!));
+                        return BookMarkIcon(name: cwCompleted.currentCityEntity.name!);
+                      }
+                      return Container();
+                    },
                   ),
-                ),
-                  suggestionsCallback: (String prefix){
-                    /// call api
-                  return getSuggestCityUseCase.call(prefix);
-                   },
-                  itemBuilder: (context,Data model){
-                    return ListTile(
-                      leading: const Icon(Icons.location_on),
-                      title: Text(model.name!),
-                      subtitle: Text("${model.region!},${model.country!}"),
-                    );
-                  },
-                  onSuggestionSelected: (Data model){
-                    /// show text in textField
-                    textEditingController.text=model.name!;
-                    /// call event for get current weather
-                    BlocProvider.of<HomeBloc>(context).add(LoadCwEvent(model.name!));
-                  }),
+                ],
+              ),
             ),
             /// main ui
             BlocBuilder<HomeBloc,HomeState>(
@@ -411,6 +451,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ));
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 
 
 }
